@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../components/Context/Authprovider";
+import { FcGoogle } from "react-icons/fc";
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -14,20 +15,20 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      setError('');
+      setError("");
       setLoading(true);
       await login(email, password);
-      navigate('/profile');
+      navigate("/profile");
     } catch (err) {
-      setError('Failed to login: ' + err.message);
+      setError("Failed to login: " + err.message);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="max-w-md mx-auto">
-      <div className="bg-white p-8 rounded-lg shadow-md">
+    <div className="max-w-md mx-auto mt-6 mb-10">
+      <div className="bg-transparent text-black p-8 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-6 text-center">Log In</h2>
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -60,12 +61,18 @@ export default function Login() {
             disabled={loading}
             className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50"
           >
-            {loading ? 'Logging in...' : 'Log In'}
+            {loading ? "Logging in..." : "Log In"}
           </button>
         </form>
+        <div className="mt-4">
+          <button className="btn flex items-center justify-center gap-2 bg-white text-black border-0 w-full py-2 rounded-lg hover:bg-gray-100">
+            <FcGoogle className="text-2xl" />
+            <span>Log in with Google</span>
+          </button>
+        </div>
         <div className="mt-4 text-center">
           <p className="text-gray-600">
-            Don't have an account?{' '}
+            Don't have an account?{" "}
             <Link to="/signup" className="text-blue-500 hover:text-blue-600">
               Sign Up
             </Link>
