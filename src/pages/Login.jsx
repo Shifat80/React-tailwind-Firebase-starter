@@ -8,22 +8,41 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    try {
-      setError("");
-      setLoading(true);
-      await login(email, password);
-      navigate("/profile");
-    } catch (err) {
-      setError("Failed to login: " + err.message);
-    } finally {
-      setLoading(false);
-    }
+    signIn(email, password)
+      .then(() => {
+        navigate("/profile");
+      })
+      .catch((err) => {
+        setError("Failed to login: " + err.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
+
+  function handleGoogleSignIn() {
+    setError("");
+    setGoogleLoading(true);
+
+    signInWithGoogle()
+      .then(() => {
+        navigate("/profile");
+      })
+      .catch((err) => {
+        setError("Failed to sign in with Google: " + err.message);
+      })
+      .finally(() => {
+        setGoogleLoading(false);
+      });
   }
 
   return (
@@ -65,9 +84,14 @@ export default function Login() {
           </button>
         </form>
         <div className="mt-4">
-          <button className="btn flex items-center justify-center gap-2 bg-white text-black border-0 w-full py-2 rounded-lg hover:bg-gray-100">
+          <button
+            onClick={handleGoogleSignIn}
+            disabled={googleLoading}
+            type="button"
+            className="btn flex items-center justify-center gap-2 bg-white text-black border border-gray-300 w-full py-2 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+          >
             <FcGoogle className="text-2xl" />
-            <span>Log in with Google</span>
+            <span>{googleLoading ? "Signing in..." : "Log in with Google"}</span>
           </button>
         </div>
         <div className="mt-4 text-center">

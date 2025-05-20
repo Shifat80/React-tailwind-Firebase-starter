@@ -3,31 +3,41 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/Context/Authprovider';
 
 export default function Signup() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { createUser, updateUserProfile } = useAuth();
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      return setError('Passwords do not match');
+      setError('Passwords do not match');
+      return;
     }
 
-    try {
-      setError('');
-      setLoading(true);
-      await signup(email, password);
-      navigate('/profile');
-    } catch (err) {
-      setError('Failed to create an account: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
+    setError('');
+    setLoading(true);
+
+    createUser(email, password)
+      .then((result) => {
+        if (name) {
+          return updateUserProfile(name, null);
+        }
+      })
+      .then(() => {
+        navigate('/profile');
+      })
+      .catch((err) => {
+        setError('Failed to create an account: ' + err.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }
 
   return (
@@ -40,6 +50,15 @@ export default function Signup() {
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-gray-700 mb-2">Name (optional)</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
           <div>
             <label className="block text-gray-700 mb-2">Email</label>
             <input

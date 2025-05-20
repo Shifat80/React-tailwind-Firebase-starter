@@ -1,50 +1,62 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
+  getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   updateProfile,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  sendPasswordResetEmail
 } from 'firebase/auth';
-import { auth } from '../../Config/firebase.config';
-const AuthContext = createContext();
+import app from '../../Config/firebase.config';
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+// Create the authentication context
+export const AuthContext = createContext(null);
+
+// Firebase auth instance
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
 
 const AuthProvider = ({ children }) => {
-  // State to track the current user
   const [user, setUser] = useState(null);
-  // State to track if auth is still loading
   const [loading, setLoading] = useState(true);
-  // Google provider for Google sign-in
-  const googleProvider = new GoogleAuthProvider();
 
-  // Register user with email and password
-  const registerUser = async (email, password, name) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    // Update profile to add the display name
-    await updateProfile(userCredential.user, {
-      displayName: name
-    });
-    return userCredential.user;
+  // Create user with email and password
+  const createUser = (email, password) => {
+    setLoading(true);
+    return createUserWithEmailAndPassword(auth, email, password);
   };
 
-  // Login with email and password
-  const login = (email, password) => {
+  // Update user profile
+  const updateUserProfile = (name, photo) => {
+    return updateProfile(auth.currentUser, {
+      displayName: name,
+      photoURL: photo
+    });
+  };
+
+  // Sign in user with email and password
+  const signIn = (email, password) => {
+    setLoading(true);
     return signInWithEmailAndPassword(auth, email, password);
   };
 
   // Sign in with Google
-  const googleSignIn = () => {
+  const signInWithGoogle = () => {
+    setLoading(true);
     return signInWithPopup(auth, googleProvider);
   };
 
-  // Logout user
-  const logout = () => {
+  // Reset password
+  const resetPassword = (email) => {
+    return sendPasswordResetEmail(auth, email);
+  };
+
+  // Sign out user
+  const logOut = () => {
+    setLoading(true);
     return signOut(auth);
   };
 
@@ -55,25 +67,30 @@ const AuthProvider = ({ children }) => {
       setLoading(false);
     });
 
-    // Cleanup subscription
+    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
 
-  // Create the value object to be provided to consumers
-  const value = {
+  // Auth context value
+  const authInfo = {
     user,
     loading,
-    registerUser,
-    login,
-    googleSignIn,
-    logout
+    createUser,
+    signIn,
+    signInWithGoogle,
+    updateUserProfile,
+    resetPassword,
+    logOut
   };
 
   return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
+    <AuthContext.Provider value={authInfo}>
+      {children}
     </AuthContext.Provider>
   );
 };
+
+// Custom hook to use the auth context
+export const useAuth = () => useContext(AuthContext);
 
 export default AuthProvider;
